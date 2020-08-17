@@ -180,7 +180,7 @@ class EventEntries extends React.Component {
 
     const features = new Set(organization.features);
     const hasQueryFeature = features.has('discover-query');
-    const isIssuesPage = location?.pathname?.split('/')[3] === 'issues';
+    const isIssuesPage = location.pathname?.split('/')[3] === 'issues';
 
     if (!event) {
       return (

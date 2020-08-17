@@ -28,7 +28,7 @@ describe('SharedGroupDetails', function() {
     };
 
     const wrapper = mountWithTheme(
-      <SharedGroupDetails {...props} />,
+      <SharedGroupDetails {...props} location={TestStubs.location()} />,
       TestStubs.routerContext()
     );
     expect(wrapper).toSnapshot();

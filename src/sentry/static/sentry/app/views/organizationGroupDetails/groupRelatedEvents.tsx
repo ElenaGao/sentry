@@ -11,9 +11,14 @@ import {Organization} from 'app/types';
 
 type RelatedEventsProps = React.ComponentProps<typeof RelatedEvents>;
 
+export type GroupRelatedEventsProps = Pick<
+  RelatedEventsProps,
+  'eventView' | 'relatedEvents'
+>;
+
 type Props = {
   organization: Organization;
-} & Pick<RelatedEventsProps, 'eventView' | 'relatedEvents'>;
+} & GroupRelatedEventsProps;
 
 const GroupRelatedEvents = ({eventView, organization, relatedEvents}: Props) => {
   const orgSlug = organization.slug;
