@@ -73,32 +73,6 @@ describe('groupDetails', function() {
     },
   ];
 
-  const eventView = {
-    id: undefined,
-    name: 'Events with Trace ID 1',
-    fields: [
-      {field: 'title', width: -1},
-      {field: 'event.type', width: -1},
-      {field: 'project', width: -1},
-      {field: 'project.id', width: -1},
-      {field: 'trace.span', width: -1},
-      {field: 'timestamp', width: -1},
-      {field: 'lastSeen', width: -1},
-      {field: 'issue', width: -1},
-    ],
-    sorts: [{kind: 'desc', field: 'timestamp'}],
-    query: 'trace:1',
-    project: [NaN],
-    start: '2019-05-21T06:01:48.762',
-    end: '2019-05-22T06:01:48.762',
-    statsPeriod: undefined,
-    environment: [],
-    yAxis: undefined,
-    display: undefined,
-    interval: undefined,
-    createdBy: undefined,
-  };
-
   let MockComponent;
 
   const createWrapper = (props = {organization, router, routerContext}) => {
