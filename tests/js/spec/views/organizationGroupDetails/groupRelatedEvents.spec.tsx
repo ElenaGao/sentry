@@ -19,10 +19,10 @@ describe('GroupRelatedEvents', () => {
       'event.type': 'transaction',
       id: 'transactiontest1',
       issue: 'unknown',
-      'issue.id': '',
+      'issue.id': '1',
       lastSeen: '',
       project: 'issues',
-      'project.id': 2,
+      'project.id': '1',
       timestamp: '2020-08-10T13:25:27+00:00',
       title: 'GET /users',
       'trace.span': 'transaction1',
@@ -31,10 +31,10 @@ describe('GroupRelatedEvents', () => {
       'event.type': 'error',
       id: 'errortest1',
       issue: 'unknown',
-      'issue.id': '',
+      'issue.id': '2',
       lastSeen: '',
       project: 'issues',
-      'project.id': 2,
+      'project.id': '2',
       timestamp: '2020-08-10T13:24:26+00:00',
       title: '/',
       'trace.span': 'error1',
@@ -63,7 +63,9 @@ describe('GroupRelatedEvents', () => {
         organization={organization}
         eventView={eventView}
         relatedEvents={relatedEvents}
-      />
+      />,
+      // @ts-ignore
+      TestStubs.routerContext()
     );
 
     const emptyStateWarning = wrapper.find('EmptyStateWarning');
@@ -82,10 +84,27 @@ describe('GroupRelatedEvents', () => {
     const panelItems = wrapper.find('StyledPanelItem');
     expect(panelItems).toHaveLength(10);
 
-    const panelLinks = panelItems.find('a');
-    expect(panelLinks).toHaveLength(2);
-    expect(panelLinks.at(0).text()).toEqual(relatedEvents[0].id);
-    expect(panelLinks.at(1).text()).toEqual(relatedEvents[1].id);
+    const styledLinks = panelItems.find('StyledLink');
+    expect(styledLinks).toHaveLength(2);
+    expect(styledLinks.at(0).text()).toEqual(relatedEvents[0].id);
+    expect(styledLinks.at(1).text()).toEqual(relatedEvents[1].id);
+
+    expect(styledLinks.at(0).props().to).toStrictEqual({
+      pathname: '/organizations/org-slug/performance/summary/',
+      query: {
+        end: undefined,
+        environment: [],
+        project: relatedEvents[0]['project.id'],
+        query: '',
+        start: undefined,
+        statsPeriod: '24h',
+        transaction: relatedEvents[0].title,
+      },
+    });
+
+    expect(styledLinks.at(1).props().to).toEqual(
+      `/organizations/${organization.slug}/${relatedEvents[1].project}/${relatedEvents[1]['issue.id']}/`
+    );
   });
 
   it('displays a list of Related Events - without discover button', () => {

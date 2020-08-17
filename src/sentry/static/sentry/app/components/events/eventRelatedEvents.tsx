@@ -15,7 +15,7 @@ import {getTraceDateTimeRange} from 'app/components/events/interfaces/spans/util
 import RelatedEvents from './relatedEvents';
 import EmptyState from './relatedEvents/emptyState';
 import {getCurrentLocation} from './relatedEvents/utils';
-import DiscoverButton from './relatedEvents/discoverButton';
+import getDiscoverButton from './relatedEvents/getDiscoverButton';
 
 type Props = {
   location: Location;
@@ -100,57 +100,50 @@ class EventRelatedEvents extends React.Component<Props, State> {
       return <LoadingIndicator />;
     }
 
-    if (!eventView) {
-      return this.renderEmptyState();
-    }
-
     const currentLocation = getCurrentLocation();
 
     return (
       <EventDataSection
         type="related-events"
         title={t('Related Events')}
-        actions={
-          <DiscoverButton
-            currentLocation={currentLocation}
-            eventView={eventView}
-            orgSlug={orgSlug}
-            orgFeatures={orgFeatures}
-          />
-        }
+        actions={getDiscoverButton({orgSlug, currentLocation, orgFeatures, eventView})}
       >
-        <DiscoverQuery location={location} eventView={eventView} orgSlug={orgSlug}>
-          {discoverData => {
-            if (discoverData.isLoading) {
-              return <LoadingIndicator />;
-            }
+        {eventView ? (
+          <DiscoverQuery location={location} eventView={eventView} orgSlug={orgSlug}>
+            {discoverData => {
+              if (discoverData.isLoading) {
+                return <LoadingIndicator />;
+              }
 
-            if (!discoverData.tableData?.data) {
-              return this.renderEmptyState(
-                t(
-                  "Sorry, but it seems that you don't have access to the discover endpoints"
-                )
+              if (!discoverData.tableData?.data) {
+                return this.renderEmptyState(
+                  t(
+                    "Sorry, but it seems that you don't have access to the discover endpoints"
+                  )
+                );
+              }
+
+              const relatedEvents = uniqBy(discoverData.tableData?.data, 'id').filter(
+                evt => evt.id !== event?.id
               );
-            }
 
-            const relatedEvents = uniqBy(discoverData.tableData?.data, 'id').filter(
-              evt => evt.id !== event?.id
-            );
+              if (!relatedEvents.length) {
+                return this.renderEmptyState();
+              }
 
-            if (!relatedEvents.length) {
-              return this.renderEmptyState();
-            }
-
-            return (
-              <RelatedEvents
-                relatedEvents={relatedEvents}
-                eventView={eventView}
-                currentLocation={currentLocation}
-                orgSlug={orgSlug}
-              />
-            );
-          }}
-        </DiscoverQuery>
+              return (
+                <RelatedEvents
+                  relatedEvents={relatedEvents}
+                  eventView={eventView}
+                  currentLocation={currentLocation}
+                  orgSlug={orgSlug}
+                />
+              );
+            }}
+          </DiscoverQuery>
+        ) : (
+          this.renderEmptyState()
+        )}
       </EventDataSection>
     );
   }

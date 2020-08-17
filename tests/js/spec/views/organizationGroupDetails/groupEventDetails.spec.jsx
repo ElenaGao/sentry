@@ -14,6 +14,7 @@ describe('groupEventDetails', () => {
   let event;
   let location;
   let promptsActivity;
+  let relatedEvents;
 
   const mockGroupApis = () => {
     MockApiClient.addMockResponse({
@@ -23,6 +24,7 @@ describe('groupEventDetails', () => {
 
     MockApiClient.addMockResponse({
       url: `/issues/${group.id}/events/latest/`,
+      statusCode: 200,
       body: event,
     });
 
@@ -87,6 +89,32 @@ describe('groupEventDetails', () => {
     project = props.project;
     project.organization = org;
     routerContext = props.routerContext;
+    relatedEvents = [
+      {
+        'event.type': 'transaction',
+        id: 'transactiontest1',
+        issue: 'unknown',
+        'issue.id': '',
+        lastSeen: '',
+        project: 'issues',
+        'project.id': 2,
+        timestamp: '2020-08-10T13:25:27+00:00',
+        title: 'GET /users',
+        'trace.span': 'transaction1',
+      },
+      {
+        'event.type': 'error',
+        id: 'errortest1',
+        issue: 'unknown',
+        'issue.id': '',
+        lastSeen: '',
+        project: 'issues',
+        'project.id': 2,
+        timestamp: '2020-08-10T13:24:26+00:00',
+        title: '/',
+        'trace.span': 'error1',
+      },
+    ];
 
     group = TestStubs.Group();
     event = TestStubs.Event({
@@ -95,6 +123,12 @@ describe('groupEventDetails', () => {
       errors: [],
       entries: [],
       tags: [{key: 'environment', value: 'dev'}],
+      contexts: {
+        trace: {
+          type: 'transaction',
+          trace_id: '1',
+        },
+      },
     });
 
     location = TestStubs.location({
@@ -102,6 +136,14 @@ describe('groupEventDetails', () => {
     });
 
     mockGroupApis();
+
+    MockApiClient.addMockResponse({
+      url: '/organizations/org-slug/eventsv2/',
+      body: {
+        data: relatedEvents,
+        meta: undefined,
+      },
+    });
 
     MockApiClient.addMockResponse({
       url: '/sentry-apps/',
@@ -346,6 +388,78 @@ describe('groupEventDetails', () => {
 
       expect(wrapper.find('EventCause').exists()).toBe(true);
       expect(wrapper.find('EventCauseEmpty').exists()).toBe(false);
+    });
+
+    it('renders Related Events if issues page - empty state', async function() {
+      const wrapper = mountWithTheme(
+        <GroupEventDetails
+          api={new MockApiClient()}
+          group={group}
+          project={project}
+          organization={org}
+          environments={[{id: '1', name: 'dev', displayName: 'Dev'}]}
+          params={{orgId: org.slug, groupId: group.id, eventId: '1'}}
+          event={{...event, contexts: {}}}
+          location={location}
+        />,
+        routerContext
+      );
+      await tick();
+      wrapper.update();
+
+      const eventRelatedEvents = wrapper.find('EventRelatedEvents');
+      expect(eventRelatedEvents).toHaveLength(1);
+
+      expect(eventRelatedEvents.find('h3').text()).toEqual('Related Events');
+
+      const emptyStateElement = eventRelatedEvents.find('EmptyStateWarning');
+      expect(emptyStateElement).toHaveLength(1);
+      expect(emptyStateElement.text()).toEqual(
+        'No related events have been found for the last 24 hours.'
+      );
+    });
+
+    it('renders Related Events if issues page - displays a list of Related Events', async function() {
+      const wrapper = mountWithTheme(
+        <GroupEventDetails
+          api={new MockApiClient()}
+          group={group}
+          project={project}
+          organization={org}
+          environments={[{id: '1', name: 'dev', displayName: 'Dev'}]}
+          params={{orgId: org.slug, groupId: group.id, eventId: '1'}}
+          event={event}
+          location={location}
+        />,
+        routerContext
+      );
+      await tick();
+      wrapper.update();
+
+      const eventRelatedEvents = wrapper.find('EventRelatedEvents');
+      expect(eventRelatedEvents).toHaveLength(1);
+
+      expect(eventRelatedEvents.find('h3').text()).toEqual('Related Events');
+
+      const emptyStateElement = eventRelatedEvents.find('EmptyStateWarning');
+      expect(emptyStateElement).toHaveLength(0);
+
+      const openInDiscoverButton = eventRelatedEvents.find('Button');
+      expect(openInDiscoverButton).toHaveLength(0);
+
+      const panelTable = eventRelatedEvents.find('PanelTable');
+      expect(panelTable).toHaveLength(1);
+
+      const paneltableHeader = panelTable.find('PanelTableHeader');
+      expect(paneltableHeader).toHaveLength(5);
+
+      const panelItems = panelTable.find('StyledPanelItem');
+      expect(panelItems).toHaveLength(10);
+
+      const styledLinks = panelItems.find('StyledLink');
+      expect(styledLinks).toHaveLength(2);
+      expect(styledLinks.at(0).text()).toEqual(relatedEvents[0].id);
+      expect(styledLinks.at(1).text()).toEqual(relatedEvents[1].id);
     });
   });
 

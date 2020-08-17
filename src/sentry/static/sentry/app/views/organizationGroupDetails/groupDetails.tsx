@@ -390,7 +390,11 @@ class GroupDetails extends React.Component<Props, State> {
               ) : isError ? (
                 this.renderError()
               ) : (
-                <Projects orgId={organization.slug} slugs={[project!.slug]}>
+                <Projects
+                  orgId={organization.slug}
+                  slugs={[project!.slug]}
+                  data-test-id="group-projects-container"
+                >
                   {({projects, initiallyLoaded, fetchError}) =>
                     initiallyLoaded ? (
                       fetchError ? (

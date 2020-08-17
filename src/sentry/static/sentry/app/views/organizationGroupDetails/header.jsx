@@ -98,6 +98,8 @@ class GroupHeader extends React.Component {
       query: searchTermWithoutQuery,
     };
 
+    console.log('className', className);
+
     return (
       <div className={className}>
         <div className="row">

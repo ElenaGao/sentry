@@ -10,15 +10,16 @@ import {CURRENT_LOCATION} from './types';
 
 type Props = {
   currentLocation: CURRENT_LOCATION;
-  eventView: EventView;
   orgSlug: Organization['slug'];
   orgFeatures: Set<string>;
+  eventView?: EventView;
 };
 
-const DiscoverButton = ({currentLocation, eventView, orgFeatures, orgSlug}: Props) => {
+function getDiscoverButton({currentLocation, eventView, orgFeatures, orgSlug}: Props) {
   if (
     !orgFeatures.has('discover-basic') ||
-    currentLocation === CURRENT_LOCATION.DISCOVER
+    currentLocation === CURRENT_LOCATION.DISCOVER ||
+    !eventView
   ) {
     return null;
   }
@@ -30,6 +31,6 @@ const DiscoverButton = ({currentLocation, eventView, orgFeatures, orgSlug}: Prop
       {t('Open in Discover')}
     </Button>
   );
-};
+}
 
-export default DiscoverButton;
+export default getDiscoverButton;

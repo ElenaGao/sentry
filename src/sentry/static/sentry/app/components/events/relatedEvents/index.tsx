@@ -61,15 +61,13 @@ const RelatedEvents = ({currentLocation, orgSlug, eventView, relatedEvents}: Pro
       : getTransactionLink(String(dataRow['project.id']), String(dataRow.title));
   };
 
-  const renderEventId = (dataRow: TableDataRow & {type: EVENT_TYPE}) => {
-    return (
-      <Tooltip title={t('View Event')}>
-        <StyledLink to={getEventTarget(dataRow)}>
-          {dataRow.id as React.ReactNode}
-        </StyledLink>
-      </Tooltip>
-    );
-  };
+  const renderEventId = (dataRow: TableDataRow & {type: EVENT_TYPE}) => (
+    <Tooltip title={t('View Event')}>
+      <StyledLink to={getEventTarget(dataRow)}>
+        {dataRow.id as React.ReactNode}
+      </StyledLink>
+    </Tooltip>
+  );
 
   const renderIcon = (type: EVENT_TYPE) => {
     if (type === EVENT_TYPE.ERROR) {

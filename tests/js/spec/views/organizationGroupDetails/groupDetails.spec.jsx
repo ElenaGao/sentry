@@ -8,6 +8,7 @@ import GlobalSelectionStore from 'app/stores/globalSelectionStore';
 import GroupDetails from 'app/views/organizationGroupDetails';
 import ProjectsStore from 'app/stores/projectsStore';
 import GroupStore from 'app/stores/groupStore';
+import GroupRelatedEvents from 'app/views/organizationGroupDetails/groupRelatedEvents';
 
 jest.mock('app/views/organizationGroupDetails/header', () => jest.fn(() => null));
 jest.unmock('app/utils/recreateRoute');
@@ -44,6 +45,60 @@ describe('groupDetails', function() {
       ],
     },
   });
+
+  const relatedEvents = [
+    {
+      'event.type': 'transaction',
+      id: 'transactiontest1',
+      issue: 'unknown',
+      'issue.id': '',
+      lastSeen: '',
+      project: 'issues',
+      'project.id': 2,
+      timestamp: '2020-08-10T13:25:27+00:00',
+      title: 'GET /users',
+      'trace.span': 'transaction1',
+    },
+    {
+      'event.type': 'error',
+      id: 'errortest1',
+      issue: 'unknown',
+      'issue.id': '',
+      lastSeen: '',
+      project: 'issues',
+      'project.id': 2,
+      timestamp: '2020-08-10T13:24:26+00:00',
+      title: '/',
+      'trace.span': 'error1',
+    },
+  ];
+
+  const eventView = {
+    id: undefined,
+    name: 'Events with Trace ID 1',
+    fields: [
+      {field: 'title', width: -1},
+      {field: 'event.type', width: -1},
+      {field: 'project', width: -1},
+      {field: 'project.id', width: -1},
+      {field: 'trace.span', width: -1},
+      {field: 'timestamp', width: -1},
+      {field: 'lastSeen', width: -1},
+      {field: 'issue', width: -1},
+    ],
+    sorts: [{kind: 'desc', field: 'timestamp'}],
+    query: 'trace:1',
+    project: [NaN],
+    start: '2019-05-21T06:01:48.762',
+    end: '2019-05-22T06:01:48.762',
+    statsPeriod: undefined,
+    environment: [],
+    yAxis: undefined,
+    display: undefined,
+    interval: undefined,
+    createdBy: undefined,
+  };
+
   let MockComponent;
 
   const createWrapper = (props = {organization, router, routerContext}) => {
@@ -80,7 +135,8 @@ describe('groupDetails', function() {
     MockApiClient.addMockResponse({
       url: '/organizations/org-slug/eventsv2/',
       body: {
-        data: [],
+        data: relatedEvents,
+        meta: undefined,
       },
     });
     MockApiClient.addMockResponse({
@@ -234,6 +290,13 @@ describe('groupDetails', function() {
       },
       {}
     );
+
+    const groupProjectsContainer = wrapper.find(
+      'Projects[data-test-id="group-projects-container"]'
+    );
+
+    expect(groupProjectsContainer).toHaveLength(1);
+    expect(groupProjectsContainer.children()).toHaveLength(2);
   });
 
   /**
@@ -252,5 +315,154 @@ describe('groupDetails', function() {
     expect(browserHistory.push).toHaveBeenCalledWith(
       '/organizations/org-slug/issues/new-id/?foo=bar#hash'
     );
+  });
+
+  it('renders groupRelatedEvents - empty', async function() {
+    MockComponent = props => <GroupRelatedEvents {...props} />;
+
+    const props = initializeOrg({
+      project: TestStubs.Project(),
+      router: {
+        location: {
+          pathname: '/issues/groupId/',
+          query: {environment: 'staging'},
+        },
+        params: {
+          groupId: group.id,
+        },
+      },
+    });
+
+    wrapper = createWrapper(props);
+
+    ProjectsStore.loadInitialData(props.organization.projects);
+
+    await tick();
+    // Reflux and stuff
+    await tick();
+    wrapper.update();
+
+    const emptyStateElement = wrapper.find('EmptyStateWarning');
+    expect(emptyStateElement).toHaveLength(1);
+    expect(emptyStateElement.text()).toEqual(
+      'No related events have been found for the last 24 hours.'
+    );
+  });
+
+  it('renders groupRelatedEvents - list related events', async function() {
+    MockApiClient.addMockResponse({
+      url: `/issues/${group.id}/events/latest/`,
+      statusCode: 200,
+      body: {
+        ...event,
+        contexts: {
+          trace: {
+            trace_id: '1',
+          },
+        },
+      },
+    });
+
+    MockComponent = props => <GroupRelatedEvents {...props} />;
+
+    const props = initializeOrg({
+      project: TestStubs.Project(),
+      router: {
+        location: {
+          pathname: '/issues/groupId/',
+          query: {environment: 'staging'},
+        },
+        params: {
+          groupId: group.id,
+        },
+      },
+    });
+
+    wrapper = createWrapper(props);
+
+    ProjectsStore.loadInitialData(props.organization.projects);
+
+    await tick();
+    // Reflux and stuff
+    await tick();
+    wrapper.update();
+
+    const emptyStateElement = wrapper.find('EmptyStateWarning');
+    expect(emptyStateElement).toHaveLength(0);
+
+    const discoverQuery = wrapper.find('DiscoverQuery');
+    expect(discoverQuery).toHaveLength(1);
+
+    const groupHeader = discoverQuery.children().at(0);
+    expect(groupHeader.props().relatedEventsQuantity).toEqual(relatedEvents.length);
+
+    const actionContainer = wrapper.find('Action');
+    expect(actionContainer).toHaveLength(0);
+
+    const panelTable = wrapper.find('PanelTable');
+    expect(panelTable).toHaveLength(1);
+
+    const paneltableHeader = wrapper.find('PanelTableHeader');
+    expect(paneltableHeader).toHaveLength(5);
+
+    const panelItems = wrapper.find('StyledPanelItem');
+    expect(panelItems).toHaveLength(10);
+
+    const panelLinks = panelItems.find('a');
+    expect(panelLinks).toHaveLength(2);
+    expect(panelLinks.at(0).text()).toEqual(relatedEvents[0].id);
+    expect(panelLinks.at(1).text()).toEqual(relatedEvents[1].id);
+  });
+
+  it('renders groupRelatedEvents - with discover button', async function() {
+    MockApiClient.addMockResponse({
+      url: `/issues/${group.id}/events/latest/`,
+      statusCode: 200,
+      body: {
+        ...event,
+        contexts: {
+          trace: {
+            trace_id: '1',
+          },
+        },
+      },
+    });
+
+    MockComponent = props => <GroupRelatedEvents {...props} />;
+
+    const props = initializeOrg({
+      organization: TestStubs.Organization({features: ['discover-basic']}),
+      project: TestStubs.Project(),
+      router: {
+        location: {
+          pathname: '/issues/groupId/',
+          query: {environment: 'staging'},
+        },
+        params: {
+          groupId: group.id,
+        },
+      },
+    });
+
+    wrapper = createWrapper(props);
+
+    ProjectsStore.loadInitialData(props.organization.projects);
+
+    await tick();
+    // Reflux and stuff
+    await tick();
+    wrapper.update();
+
+    const emptyStateElement = wrapper.find('EmptyStateWarning');
+    expect(emptyStateElement).toHaveLength(0);
+
+    const discoverQuery = wrapper.find('DiscoverQuery');
+    expect(discoverQuery).toHaveLength(1);
+
+    const groupHeader = discoverQuery.children().at(0);
+    expect(groupHeader.props().relatedEventsQuantity).toEqual(relatedEvents.length);
+
+    const actionContainer = wrapper.find('Action');
+    expect(actionContainer).toHaveLength(1);
   });
 });

@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 import RelatedEvents from 'app/components/events/relatedEvents';
 import EmptyState from 'app/components/events/relatedEvents/emptyState';
 import {getCurrentLocation} from 'app/components/events/relatedEvents/utils';
-import DiscoverButton from 'app/components/events/relatedEvents/discoverButton';
+import getDiscoverButton from 'app/components/events/relatedEvents/getDiscoverButton';
 import space from 'app/styles/space';
 import withOrganization from 'app/utils/withOrganization';
 import {Organization} from 'app/types';
@@ -29,16 +29,16 @@ const GroupRelatedEvents = ({eventView, organization, relatedEvents}: Props) => 
     return <EmptyState />;
   }
 
+  const discoverButton = getDiscoverButton({
+    orgSlug,
+    orgFeatures,
+    currentLocation,
+    eventView,
+  });
+
   return (
     <React.Fragment>
-      <Action>
-        <DiscoverButton
-          orgSlug={orgSlug}
-          orgFeatures={orgFeatures}
-          currentLocation={currentLocation}
-          eventView={eventView}
-        />
-      </Action>
+      {discoverButton && <Action>{discoverButton}</Action>}
       <RelatedEvents
         eventView={eventView}
         relatedEvents={relatedEvents}
