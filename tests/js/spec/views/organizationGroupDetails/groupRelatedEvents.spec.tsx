@@ -1,6 +1,5 @@
 import React from 'react';
 
-// import {initializeOrg} from 'sentry-test/initializeOrg';
 import {mountWithTheme} from 'sentry-test/enzyme';
 
 import GroupRelatedEvents, {
@@ -12,7 +11,9 @@ import EventView from 'app/utils/discover/eventView';
 describe('GroupRelatedEvents', () => {
   const eventView = EventView.fromSavedQuery(DEFAULT_EVENT_VIEW);
   // @ts-ignore Cannot find name 'TestStubs'
-  const organization = TestStubs.Organization({features: ['discover-basic']});
+  const organization = TestStubs.Organization({
+    features: ['discover-basic', 'related-events'],
+  });
 
   const relatedEvents: GroupRelatedEventsProps['relatedEvents'] = [
     {
@@ -110,7 +111,7 @@ describe('GroupRelatedEvents', () => {
   it('displays a list of Related Events - without discover button', () => {
     const wrapper = mountWithTheme(
       <GroupRelatedEvents
-        organization={{...organization, features: []}}
+        organization={{...organization, features: ['related-events']}}
         eventView={eventView}
         relatedEvents={relatedEvents}
       />

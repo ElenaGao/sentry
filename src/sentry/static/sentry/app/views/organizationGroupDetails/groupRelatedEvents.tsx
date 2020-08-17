@@ -8,6 +8,7 @@ import getDiscoverButton from 'app/components/events/relatedEvents/getDiscoverBu
 import space from 'app/styles/space';
 import withOrganization from 'app/utils/withOrganization';
 import {Organization} from 'app/types';
+import Feature from 'app/components/acl/feature';
 
 type RelatedEventsProps = React.ComponentProps<typeof RelatedEvents>;
 
@@ -49,7 +50,13 @@ const GroupRelatedEvents = ({eventView, organization, relatedEvents}: Props) => 
   );
 };
 
-export default withOrganization(GroupRelatedEvents);
+const GroupRelatedEventsContainer = (props: Props) => (
+  <Feature features={['related-events']} organization={props.organization}>
+    <GroupRelatedEvents {...props} />
+  </Feature>
+);
+
+export default withOrganization(GroupRelatedEventsContainer);
 
 const Action = styled('div')`
   display: flex;

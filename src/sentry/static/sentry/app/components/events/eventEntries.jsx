@@ -35,6 +35,7 @@ import TemplateInterface from 'app/components/events/interfaces/template';
 import ThreadsInterface from 'app/components/events/interfaces/threads/threads';
 import {DataSection} from 'app/components/events/styles';
 import space from 'app/styles/space';
+import Feature from 'app/components/acl/feature';
 import withOrganization from 'app/utils/withOrganization';
 
 import BreadcrumbsInterface from './eventEntriesBreadcrumbs';
@@ -244,11 +245,13 @@ class EventEntries extends React.Component {
           <EventSdkUpdates event={event} />
         )}
         {!isIssuesPage && (
-          <EventRelatedEvents
-            location={location}
-            event={event}
-            organization={organization}
-          />
+          <Feature features={['related-events']} organization={organization}>
+            <EventRelatedEvents
+              location={location}
+              event={event}
+              organization={organization}
+            />
+          </Feature>
         )}
         {!isShare && event.groupID && (
           <EventGroupingInfo

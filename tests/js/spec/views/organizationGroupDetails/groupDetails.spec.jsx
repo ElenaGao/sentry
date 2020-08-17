@@ -219,6 +219,9 @@ describe('groupDetails', function() {
   it('fetches issue details for a given environment', async function() {
     const props = initializeOrg({
       project: TestStubs.Project(),
+      organization: {
+        features: ['related-events'],
+      },
       router: {
         location: {
           pathname: '/issues/groupId/',
@@ -296,6 +299,9 @@ describe('groupDetails', function() {
 
     const props = initializeOrg({
       project: TestStubs.Project(),
+      organization: {
+        features: ['related-events'],
+      },
       router: {
         location: {
           pathname: '/issues/groupId/',
@@ -341,6 +347,9 @@ describe('groupDetails', function() {
 
     const props = initializeOrg({
       project: TestStubs.Project(),
+      organization: {
+        features: ['related-events'],
+      },
       router: {
         location: {
           pathname: '/issues/groupId/',
@@ -405,7 +414,9 @@ describe('groupDetails', function() {
     MockComponent = props => <GroupRelatedEvents {...props} />;
 
     const props = initializeOrg({
-      organization: TestStubs.Organization({features: ['discover-basic']}),
+      organization: {
+        features: ['discover-basic', 'related-events'],
+      },
       project: TestStubs.Project(),
       router: {
         location: {

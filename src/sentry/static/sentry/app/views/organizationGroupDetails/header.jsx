@@ -22,6 +22,7 @@ import Tooltip from 'app/components/tooltip';
 import Badge from 'app/components/badge';
 import space from 'app/styles/space';
 import withApi from 'app/utils/withApi';
+import Feature from 'app/components/acl/feature';
 
 import GroupActions from './actions';
 
@@ -204,12 +205,14 @@ class GroupHeader extends React.Component {
           >
             {t('Details')}
           </ListLink>
-          <ListLink
-            to={`${baseUrl}${groupId}/related-events/${location.search}`}
-            isActive={() => location.pathname.includes('/related-events/')}
-          >
-            {t('Related Events')} <Badge text={relatedEventsQuantity} />
-          </ListLink>
+          <Feature features={['related-events']} organization={organization}>
+            <ListLink
+              to={`${baseUrl}${groupId}/related-events/${location.search}`}
+              isActive={() => location.pathname.includes('/related-events/')}
+            >
+              {t('Related Events')} <Badge text={relatedEventsQuantity} />
+            </ListLink>
+          </Feature>
           <ListLink
             to={`${baseUrl}${groupId}/activity/${location.search}`}
             isActive={() => location.pathname.includes('/activity/')}
